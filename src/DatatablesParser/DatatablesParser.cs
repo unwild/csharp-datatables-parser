@@ -98,7 +98,7 @@ namespace DataTablesParser
             _isEnumerableQuery = _query is System.Linq.EnumerableQuery;
         }
 
-        public Results<T> Parse()
+            public Results<T> Parse()
         {
             var list = new Results<T>();
 
@@ -109,45 +109,47 @@ namespace DataTablesParser
             list.recordsTotal = _originalQuery.Count();
 
             //sort results if sorting isn't disabled or skip needs to be called
-            if(!_sortDisabled || _skip > 0)
+            if (!_sortDisabled || _skip > 0)
             {
                 ApplySort();
             }
 
-
             IEnumerable<T> resultQuery;
-            var hasFilterText = !string.IsNullOrWhiteSpace(_config[Constants.SEARCH_KEY]) || _propertyMap.Any( p => !string.IsNullOrWhiteSpace(p.Value.Filter));
+            var hasFilterText = !string.IsNullOrWhiteSpace(_config[Constants.SEARCH_KEY]) || _propertyMap.Any(p => !string.IsNullOrWhiteSpace(p.Value.Filter));
             //Use query expression to return filtered paged list
             //This is a best effort to avoid client evaluation whenever possible
             //No good api to determine support for .ToString() on a type
-            if(hasFilterText)
+            if (hasFilterText)
             {
                 var entityFilter = GenerateEntityFilter();
                 resultQuery = _query.Where(entityFilter)
-                            .Skip(_skip)
-                            .Take(_take);
+                            .Skip(_skip);
+
+                if (_take > 0)
+                    resultQuery = resultQuery.Take(_take);
 
                 list.recordsFiltered = _query.Count(entityFilter);
             }
             else
             {
                 resultQuery = _query
-                            .Skip(_skip)
-                            .Take(_take);
+                            .Skip(_skip);
 
-                if(_query == _originalQuery)
+                if (_take > 0)
+                    resultQuery = resultQuery.Take(_take);
+
+                if (_query == _originalQuery)
                     list.recordsFiltered = list.recordsTotal;
                 else
                     list.recordsFiltered = _query.Count();
 
             }
-            
+
 
             list.data = resultQuery.ToList();
 
             return list;
         }
-
         ///<summary>
         /// SetConverter accepts a custom expression for converting a property in T to string. 
         /// This will be used during filtering. 
