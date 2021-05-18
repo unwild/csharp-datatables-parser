@@ -377,7 +377,9 @@ namespace DataTablesParser
 
                     if(globalFilterConst!=null)
                     {
-                        Expression globalTest = Expression.Call(toLower, typeof(string).GetMethod(globalFilterFn, new[] { typeof(string) }), globalFilterConst);
+			Expression nullCheck = Expression.Equal(propExp, Expression.Constant(null, propExp.Type));
+                    	Expression _globalTest = Expression.Call(toLower, typeof(string).GetMethod(globalFilterFn, new[] { typeof(string) }), globalFilterConst);                               
+                    	Expression globalTest = Expression.AndAlso(Expression.Not(nullCheck), _globalTest);
 
                         if(filterExpr == null)
                         {
